@@ -6,16 +6,31 @@ dotenv.config();
 
 const app = express();
 
-app.use(cors());
+/* CORS Configuration
+   Allow frontend deployed on Vercel.
+   During testing, "*" can be used.
+*/
+app.use(cors({
+  origin: "*", // change to Vercel URL after deployment
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  credentials: true
+}));
+
 app.use(express.json());
 
-// Simple in-memory store (no DB needed for CBP)
-// users: [{ id, name, email, password }]
-// tasks: [{ id, userId, title, description, priority, status, createdAt }]
+// ===============================
+// In-memory storage (temporary)
+// ===============================
+
 global.users = [];
 global.tasks = [];
+
 global.nextUserId = 1;
 global.nextTaskId = 1;
+
+// ===============================
+// Routes
+// ===============================
 
 const authRoutes = require("./routes/auth");
 const taskRoutes = require("./routes/tasks");
@@ -23,11 +38,22 @@ const taskRoutes = require("./routes/tasks");
 app.use("/api/auth", authRoutes);
 app.use("/api/tasks", taskRoutes);
 
+// ===============================
+// Health check route
+// ===============================
+
 app.get("/", (req, res) => {
-  res.json({ message: "Student Task Manager API is running" });
+  res.json({
+    message: "Student Task Manager API is running"
+  });
 });
 
+// ===============================
+// Start server
+// ===============================
+
 const PORT = process.env.PORT || 5000;
+
 app.listen(PORT, () => {
   console.log(`Server started on port ${PORT}`);
 });
