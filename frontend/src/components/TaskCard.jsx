@@ -1,6 +1,6 @@
 import React from "react";
 
-function TaskCard({ task, onToggle, onDelete, deadlineStatus }) {
+function TaskCard({ task, onToggle, onDelete, onEdit, deadlineStatus }) {
   const formatDate = (dateStr) => {
     if (!dateStr) return "";
     return new Date(dateStr).toLocaleDateString("en-IN", {
@@ -11,25 +11,15 @@ function TaskCard({ task, onToggle, onDelete, deadlineStatus }) {
   };
 
   return (
-    <div
-      className={`task-card priority-${task.priority} ${task.status === "completed" ? "done" : ""}`}
-    >
-      <div className="task-info" style={{ flex: 1 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+    <div className={`task-card priority-${task.priority} ${task.status === "completed" ? "done" : ""}`}>
+      <div className="task-info">
+
+        <div className="task-top-row">
           <div className="task-title">{task.title}</div>
           {task.deadline && deadlineStatus && (
             <span
-              style={{
-                fontSize: "12px",
-                fontWeight: "600",
-                padding: "4px 12px",
-                borderRadius: "20px",
-                background: deadlineStatus.bg,
-                color: deadlineStatus.color,
-                whiteSpace: "nowrap",
-                marginLeft: "12px",
-                flexShrink: 0,
-              }}
+              className="deadline-badge"
+              style={{ background: deadlineStatus.bg, color: deadlineStatus.color }}
             >
               {deadlineStatus.label}
             </span>
@@ -43,26 +33,22 @@ function TaskCard({ task, onToggle, onDelete, deadlineStatus }) {
         <div className="task-meta">
           <span className={`badge badge-${task.priority}`}>{task.priority}</span>
           <span className={`badge badge-${task.status}`}>{task.status}</span>
-          {task.deadline && (
-            <span style={{ fontSize: "12px", color: "#888" }}>
-              📅 Due: {formatDate(task.deadline)}
-            </span>
+          {task.category && (
+            <span className="badge-cat">{task.category}</span>
           )}
-          {!task.deadline && (
-            <span style={{ fontSize: "11px", color: "#ccc" }}>No deadline set</span>
+          {task.deadline && (
+            <span className="due-date-text">📅 {formatDate(task.deadline)}</span>
           )}
         </div>
+
       </div>
 
       <div className="task-actions">
         {task.status === "pending" && (
-          <button className="btn-done" onClick={() => onToggle(task.id)}>
-            Done
-          </button>
+          <button className="btn-done" onClick={() => onToggle(task.id)}>Done</button>
         )}
-        <button className="btn-delete" onClick={() => onDelete(task.id)}>
-          Delete
-        </button>
+        <button className="btn-edit" onClick={() => onEdit(task)}>Edit</button>
+        <button className="btn-delete" onClick={() => onDelete(task.id)}>Delete</button>
       </div>
     </div>
   );

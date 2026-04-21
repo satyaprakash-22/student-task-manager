@@ -6,8 +6,8 @@ function About() {
       <h2>About TaskMate</h2>
       <p>
         TaskMate is a full-stack web application built as a Course Based Project for the
-        Web Application Development lab (22SD5IT201). It helps students organize and
-        track their daily academic tasks efficiently.
+        Web Application Development lab. It helps users organize and
+        track their daily tasks efficiently.
       </p>
       <p>
         The application supports user registration and login with JWT authentication,

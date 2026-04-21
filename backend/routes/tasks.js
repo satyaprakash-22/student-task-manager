@@ -2,15 +2,13 @@ const express = require("express");
 const router = express.Router();
 const verifyToken = require("../middleware/auth");
 
-// Get all tasks of logged in user
 router.get("/", verifyToken, (req, res) => {
   const userTasks = global.tasks.filter((t) => t.userId === req.user.id);
   res.json(userTasks);
 });
 
-// Create a task
 router.post("/", verifyToken, (req, res) => {
-  const { title, description, priority, deadline } = req.body;
+  const { title, description, priority, deadline, category } = req.body;
 
   if (!title) {
     return res.status(400).json({ message: "Title is required" });
@@ -23,6 +21,7 @@ router.post("/", verifyToken, (req, res) => {
     description: description || "",
     priority: priority || "medium",
     deadline: deadline || null,
+    category: category || "General",
     status: "pending",
     createdAt: new Date().toISOString(),
   };
@@ -31,7 +30,6 @@ router.post("/", verifyToken, (req, res) => {
   res.status(201).json(newTask);
 });
 
-// Update task
 router.put("/:id", verifyToken, (req, res) => {
   const taskId = parseInt(req.params.id);
   const taskIndex = global.tasks.findIndex(
@@ -46,7 +44,6 @@ router.put("/:id", verifyToken, (req, res) => {
   res.json(global.tasks[taskIndex]);
 });
 
-// Delete task
 router.delete("/:id", verifyToken, (req, res) => {
   const taskId = parseInt(req.params.id);
   const taskIndex = global.tasks.findIndex(
