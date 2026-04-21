@@ -26,6 +26,7 @@ router.post("/register", async (req, res) => {
   };
 
   global.users.push(newUser);
+  global.saveData();
 
   res.status(201).json({ message: "User registered successfully" });
 });
@@ -51,7 +52,7 @@ router.post("/login", async (req, res) => {
   const token = jwt.sign(
     { id: user.id, name: user.name, email: user.email },
     process.env.JWT_SECRET,
-    { expiresIn: "1d" }
+    { expiresIn: "7d" }
   );
 
   res.json({

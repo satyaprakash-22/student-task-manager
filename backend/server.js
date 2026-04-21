@@ -1,17 +1,15 @@
 const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
+const fs = require("fs");
+const path = require("path");
 
 dotenv.config();
 
 const app = express();
 
-/* CORS Configuration
-   Allow frontend deployed on Vercel.
-   During testing, "*" can be used.
-*/
 app.use(cors({
-  origin: "*", // change to Vercel URL after deployment
+  origin: "*",
   methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true
 }));
@@ -19,14 +17,36 @@ app.use(cors({
 app.use(express.json());
 
 // ===============================
-// In-memory storage (temporary)
+// Load data from file on startup
 // ===============================
 
-global.users = [];
-global.tasks = [];
+const DATA_FILE = path.join(__dirname, "data.json");
 
-global.nextUserId = 1;
-global.nextTaskId = 1;
+function loadData() {
+  try {
+    const raw = fs.readFileSync(DATA_FILE, "utf-8");
+    return JSON.parse(raw);
+  } catch (err) {
+    return { users: [], tasks: [], nextUserId: 1, nextTaskId: 1 };
+  }
+}
+
+function saveData() {
+  const data = {
+    users: global.users,
+    tasks: global.tasks,
+    nextUserId: global.nextUserId,
+    nextTaskId: global.nextTaskId,
+  };
+  fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
+}
+
+const data = loadData();
+global.users = data.users;
+global.tasks = data.tasks;
+global.nextUserId = data.nextUserId;
+global.nextTaskId = data.nextTaskId;
+global.saveData = saveData;
 
 // ===============================
 // Routes
@@ -43,9 +63,7 @@ app.use("/api/tasks", taskRoutes);
 // ===============================
 
 app.get("/", (req, res) => {
-  res.json({
-    message: "Student Task Manager API is running"
-  });
+  res.json({ message: "Student Task Manager API is running" });
 });
 
 // ===============================

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import API from "../api";
 import TaskCard from "../components/TaskCard";
 
 const CATEGORIES = ["General", "Academics", "Project", "Personal", "Exam", "Other"];
@@ -21,7 +21,7 @@ function Dashboard() {
 
   const fetchTasks = async () => {
     try {
-      const res = await axios.get("/api/tasks", authHeader);
+      const res = await API.get("/api/tasks", authHeader);
       setTasks(res.data);
     } catch (err) {
       console.log("Error fetching tasks", err);
@@ -54,12 +54,11 @@ function Dashboard() {
     e.preventDefault();
     if (!form.title.trim()) { setTaskError("Title cannot be empty"); return; }
     if (!form.deadline) { setTaskError("Please set a deadline"); return; }
-
     try {
       if (editTask) {
-        await axios.put(`/api/tasks/${editTask.id}`, form, authHeader);
+        await API.put(`/api/tasks/${editTask.id}`, form, authHeader);
       } else {
-        await axios.post("/api/tasks", form, authHeader);
+        await API.post("/api/tasks", form, authHeader);
       }
       setShowModal(false);
       setForm(emptyForm);
@@ -73,14 +72,14 @@ function Dashboard() {
 
   const handleToggle = async (id) => {
     try {
-      await axios.put(`/api/tasks/${id}`, { status: "completed" }, authHeader);
+      await API.put(`/api/tasks/${id}`, { status: "completed" }, authHeader);
       fetchTasks();
     } catch (err) { console.log(err); }
   };
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`/api/tasks/${id}`, authHeader);
+      await API.delete(`/api/tasks/${id}`, authHeader);
       fetchTasks();
     } catch (err) { console.log(err); }
   };
@@ -92,11 +91,11 @@ function Dashboard() {
     const today = new Date(); today.setHours(0, 0, 0, 0);
     const due = new Date(deadline);
     const diff = Math.ceil((due - today) / (1000 * 60 * 60 * 24));
-    if (diff < 0)  return { label: "Overdue",       color: "#c53030", bg: "#fff5f5" };
-    if (diff === 0) return { label: "Due today",     color: "#c05621", bg: "#fffaf0" };
-    if (diff === 1) return { label: "Due tomorrow",  color: "#b7791f", bg: "#fefcbf" };
+    if (diff < 0)   return { label: "Overdue",          color: "#c53030", bg: "#fff5f5" };
+    if (diff === 0) return { label: "Due today",         color: "#c05621", bg: "#fffaf0" };
+    if (diff === 1) return { label: "Due tomorrow",      color: "#b7791f", bg: "#fefcbf" };
     if (diff <= 3)  return { label: `${diff} days left`, color: "#b7791f", bg: "#fefcbf" };
-    return           { label: `${diff} days left`,   color: "#276749", bg: "#f0fff4" };
+    return           { label: `${diff} days left`,       color: "#276749", bg: "#f0fff4" };
   };
 
   const isOverdue = (task) => {
@@ -140,7 +139,7 @@ function Dashboard() {
   return (
     <div className="dashboard-page">
       <div className="dashboard-header">
-        <h2>Hello, <span>{user.name || "Student"}</span></h2>
+        <h2>Hello, <span>{user.name || "Student"}</span> 👋</h2>
         <button className="btn-add" onClick={openAddModal}>+ Add Task</button>
       </div>
 
@@ -173,7 +172,7 @@ function Dashboard() {
 
       <input
         className="search-bar"
-        placeholder="Search tasks by title, description or category..."
+        placeholder="Search by title, description or category..."
         value={search}
         onChange={(e) => setSearch(e.target.value)}
       />

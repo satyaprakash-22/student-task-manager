@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import axios from "axios";
+import API from "../api";
 
 function Register() {
   const navigate = useNavigate();
@@ -30,13 +30,10 @@ function Register() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const errs = validate();
-    if (Object.keys(errs).length > 0) {
-      setErrors(errs);
-      return;
-    }
+    if (Object.keys(errs).length > 0) { setErrors(errs); return; }
     setLoading(true);
     try {
-      await axios.post("/api/auth/register", {
+      await API.post("/api/auth/register", {
         name: form.name,
         email: form.email,
         password: form.password,
@@ -53,7 +50,6 @@ function Register() {
       <div className="auth-card">
         <h2>Create account</h2>
         <p className="subtitle">Start organizing your tasks today</p>
-
         <form onSubmit={handleSubmit}>
           <div className="form-group">
             <label>Full name</label>
@@ -66,7 +62,6 @@ function Register() {
             />
             {errors.name && <p className="error-msg">{errors.name}</p>}
           </div>
-
           <div className="form-group">
             <label>Email</label>
             <input
@@ -78,7 +73,6 @@ function Register() {
             />
             {errors.email && <p className="error-msg">{errors.email}</p>}
           </div>
-
           <div className="form-group">
             <label>Password</label>
             <input
@@ -90,7 +84,6 @@ function Register() {
             />
             {errors.password && <p className="error-msg">{errors.password}</p>}
           </div>
-
           <div className="form-group">
             <label>Confirm password</label>
             <input
@@ -102,14 +95,11 @@ function Register() {
             />
             {errors.confirm && <p className="error-msg">{errors.confirm}</p>}
           </div>
-
           {apiError && <p className="error-msg" style={{ marginBottom: "10px" }}>{apiError}</p>}
-
           <button className="btn-primary" type="submit" disabled={loading}>
             {loading ? "Creating account..." : "Register"}
           </button>
         </form>
-
         <p className="switch-link">
           Already have an account? <Link to="/login">Login</Link>
         </p>
