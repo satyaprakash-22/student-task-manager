@@ -6,12 +6,11 @@ function Dashboard() {
   const [tasks, setTasks] = useState([]);
   const [filter, setFilter] = useState("all");
   const [showModal, setShowModal] = useState(false);
-  const [newTask, setNewTask] = useState({ title: "", description: "", priority: "medium" });
+  const [newTask, setNewTask] = useState({ title: "", description: "", priority: "medium", deadline: "" });
   const [taskError, setTaskError] = useState("");
 
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   const token = localStorage.getItem("token");
-
   const authHeader = { headers: { Authorization: `Bearer ${token}` } };
 
   const fetchTasks = async () => {
@@ -33,9 +32,13 @@ function Dashboard() {
       setTaskError("Task title cannot be empty");
       return;
     }
+    if (!newTask.deadline) {
+      setTaskError("Please set a deadline");
+      return;
+    }
     try {
       await axios.post("/api/tasks", newTask, authHeader);
-      setNewTask({ title: "", description: "", priority: "medium" });
+      setNewTask({ title: "", description: "", priority: "medium", deadline: "" });
       setShowModal(false);
       setTaskError("");
       fetchTasks();
@@ -62,17 +65,47 @@ function Dashboard() {
     }
   };
 
-  const filteredTasks = tasks.filter((t) => {
-    if (filter === "all") return true;
-    if (filter === "pending") return t.status === "pending";
-    if (filter === "completed") return t.status === "completed";
-    if (filter === "high") return t.priority === "high";
-    return true;
-  });
+  const priorityWeight = { high: 1, medium: 2, low: 3 };
+
+  const sortedAndFiltered = tasks
+    .filter((t) => {
+      if (filter === "all") return true;
+      if (filter === "pending") return t.status === "pending";
+      if (filter === "completed") return t.status === "completed";
+      if (filter === "high") return t.priority === "high";
+      return true;
+    })
+    .sort((a, b) => {
+      // completed tasks always go to bottom
+      if (a.status === "completed" && b.status !== "completed") return 1;
+      if (a.status !== "completed" && b.status === "completed") return -1;
+
+      const deadlineA = a.deadline ? new Date(a.deadline) : new Date("9999-12-31");
+      const deadlineB = b.deadline ? new Date(b.deadline) : new Date("9999-12-31");
+
+      // first sort by deadline
+      if (deadlineA - deadlineB !== 0) return deadlineA - deadlineB;
+
+      // if same deadline, sort by priority
+      return priorityWeight[a.priority] - priorityWeight[b.priority];
+    });
 
   const totalTasks = tasks.length;
   const completedTasks = tasks.filter((t) => t.status === "completed").length;
   const pendingTasks = tasks.filter((t) => t.status === "pending").length;
+
+  const getDeadlineStatus = (deadline) => {
+    if (!deadline) return null;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const due = new Date(deadline);
+    const diffDays = Math.ceil((due - today) / (1000 * 60 * 60 * 24));
+    if (diffDays < 0) return { label: "Overdue", color: "#c53030", bg: "#fff5f5" };
+    if (diffDays === 0) return { label: "Due today", color: "#c05621", bg: "#fffaf0" };
+    if (diffDays === 1) return { label: "Due tomorrow", color: "#b7791f", bg: "#fefcbf" };
+    if (diffDays <= 3) return { label: `${diffDays} days left`, color: "#b7791f", bg: "#fefcbf" };
+    return { label: `${diffDays} days left`, color: "#276749", bg: "#f0fff4" };
+  };
 
   return (
     <div className="dashboard-page">
@@ -115,17 +148,18 @@ function Dashboard() {
       </div>
 
       <div className="tasks-list">
-        {filteredTasks.length === 0 ? (
+        {sortedAndFiltered.length === 0 ? (
           <div className="empty-state">
             No tasks here. Click "+ Add Task" to get started!
           </div>
         ) : (
-          filteredTasks.map((task) => (
+          sortedAndFiltered.map((task) => (
             <TaskCard
               key={task.id}
               task={task}
               onToggle={handleToggle}
               onDelete={handleDelete}
+              deadlineStatus={getDeadlineStatus(task.deadline)}
             />
           ))
         )}
@@ -164,6 +198,15 @@ function Dashboard() {
                   <option value="medium">Medium</option>
                   <option value="high">High</option>
                 </select>
+              </div>
+              <div className="form-group">
+                <label>Deadline</label>
+                <input
+                  type="date"
+                  value={newTask.deadline}
+                  min={new Date().toISOString().split("T")[0]}
+                  onChange={(e) => setNewTask({ ...newTask, deadline: e.target.value })}
+                />
               </div>
               {taskError && <p className="error-msg">{taskError}</p>}
               <div className="modal-actions">

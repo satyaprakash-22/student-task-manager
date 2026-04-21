@@ -10,7 +10,7 @@ router.get("/", verifyToken, (req, res) => {
 
 // Create a task
 router.post("/", verifyToken, (req, res) => {
-  const { title, description, priority } = req.body;
+  const { title, description, priority, deadline } = req.body;
 
   if (!title) {
     return res.status(400).json({ message: "Title is required" });
@@ -22,6 +22,7 @@ router.post("/", verifyToken, (req, res) => {
     title,
     description: description || "",
     priority: priority || "medium",
+    deadline: deadline || null,
     status: "pending",
     createdAt: new Date().toISOString(),
   };
@@ -30,7 +31,7 @@ router.post("/", verifyToken, (req, res) => {
   res.status(201).json(newTask);
 });
 
-// Update task (mark complete or edit)
+// Update task
 router.put("/:id", verifyToken, (req, res) => {
   const taskId = parseInt(req.params.id);
   const taskIndex = global.tasks.findIndex(
